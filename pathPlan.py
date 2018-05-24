@@ -1,6 +1,7 @@
 import math
 import heapq
 
+res_node =None
 i=0
 para = "crow"
 
@@ -182,16 +183,21 @@ def update_child(parent, child, cost_to_travel):
 	cells[child]['parent'] = parent
 
 def find_next_node(coord):
+	global res_node
 	node  = cells[coord]['parent']
-	print(node)
-	if node!=None:
-		if cells[node]['parent'] != None:
-		
-			find_next_node(cells[coord]['parent'])
-		else:
-			return node
-	else:
-		return coord
+	#print(node)
+	#if node!=None:
+	if cells[node]['parent'] != None:
+	
+		find_next_node(cells[coord]['parent'])
+	if cells[node]['parent'] ==None:
+		#print("test:::::")
+		#print("res_node:",coord)
+		res_node = coord
+		print("res_node:",res_node)
+		return 
+	#else:
+		#return coord
 def process_node(coord):
 	global i
 	#i = 0
@@ -201,7 +207,10 @@ def process_node(coord):
 	if coord == goal:
 		print("Cost %d\n" % cells[goal]['g_score'])
 		#unwind_path(cells[goal]['parent'], slow)
-		return find_next_node(goal)
+		find_next_node(goal)
+		print("resNode::::::",res_node)
+		#print("show_node",show_node)
+		return #show_node#find_next_node(goal)
 		
 	# l will be a list of walkable adjacents that we've found a new shortest path to
 	l = [] 
@@ -283,6 +292,7 @@ def find_path(start,goal):
 
 
 if __name__=="__main__":
+	#global res_node
 	recMapInfo = {
 	"map": {         
 		"x": 100,  
@@ -326,12 +336,13 @@ if __name__=="__main__":
 	#print(cells[(12,12)])
 	init_start_goal((2,2),(9,9))
 	print(len(cells))
+	#print("res_node:",res_node)
 	#print("num_cells:",num_cells)
 	#print(start)
 	#start  = (2,2)
 	#goal = (99,99)
 	#print(cells[(2,2)])
 	print("next_node:",find_path(start,goal))
-
+	print("res_node:::::++++",res_node)
 
 
