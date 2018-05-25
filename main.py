@@ -2,7 +2,8 @@
 import sys
 import socket
 import json
-
+import show
+import system
 #从服务器接收一段字符串, 转化成字典的形式
 def RecvJuderData(hSocket):
     nRet = -1
@@ -21,18 +22,25 @@ def SendJuderData(hSocket, dict_send):
     str_json = json.dumps(dict_send)
     len_json = str(len(str_json)).zfill(8)
     str_all = len_json + str_json
-    print(str_all)
+    #print(str_all)
     ret = hSocket.sendall(str_all.encode())
     if ret == None:
         ret = 0
     print('sendall', ret)
     return ret
 
-#用户自定义函数, 返回字典FlyPlane, 需要包括 "UAV_info", "purchase_UAV" 两个key.
-def AlgorithmCalculationFun(a, b, c):
-    FlyPlane = c["astUav"]
-    return FlyPlane
 
+        
+#用户自定义函数, 返回字典FlyPlane, 需要包括 "UAV_info", "purchase_UAV" 两个key.
+def AlgorithmCalculationFun(MapInfo, pstMatchStatus, pstFlayPlane):
+    #FlyPlane = pstFlayPlane["astUav"]
+    h_low = MapInfo["h_low"]
+    h_high = MapInfo["h_high"]
+
+    #launch....
+
+    FlyPlane = system.launch(MapInfo,pstMatchStatus)
+    return FlyPlane
 
 
 
@@ -43,8 +51,10 @@ def main(szIp, nPort, szToken):
     #Need Test // 开始连接服务器
     hSocket = socket.socket()
 
+    print(hSocket)
     hSocket.connect((szIp, nPort))
 
+    print("connect...")
     #接受数据  连接成功后，Judger会返回一条消息：
     nRet, _ = RecvJuderData(hSocket)
     if (nRet != 0):
@@ -86,7 +96,8 @@ def main(szIp, nPort, szToken):
         return nRet
     
     #初始化地图信息
-    pstMapInfo = Message["map"]  
+    pstMapInfo = Message["map"]
+
     
     #初始化比赛状态信息
     pstMatchStatus = {}
@@ -109,6 +120,8 @@ def main(szIp, nPort, szToken):
     while True:
 
         # // 进行当前时刻的数据计算, 填充飞行计划，注意：1时刻不能进行移动，即第一次进入该循环时
+        #if pstMatchStatus["time"] !=0:
+            # // 进行当前时刻的数据计算, 填充飞行计划，注意：1时刻不能进行移动，即第一次进入该循环时
         FlyPlane = AlgorithmCalculationFun(pstMapInfo, pstMatchStatus, pstFlayPlane)
         FlyPlane_send['UAV_info'] = FlyPlane
 
@@ -122,6 +135,9 @@ def main(szIp, nPort, szToken):
         nRet, pstMatchStatus = RecvJuderData(hSocket)
         if nRet != 0:
             return nRet
+        show.showMapInfo(pstMapInfo)
+        show.showUavMsg(pstMatchStatus)
+        show.showGoodsMsg(pstMatchStatus)
         
         if pstMatchStatus["match_status"] == 1:
             print("game over, we value %d, enemy value %d\n", pstMatchStatus["we_value"], pstMatchStatus["enemy_value"])
